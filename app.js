@@ -134,8 +134,8 @@ function startPrologue() {
 
   function readerPage(book, number) {
     const source = readingSamples[book.id];
-    const current = Math.min(source.parts.length, Math.max(1, Number(number) || 1));
-    const part = source.parts[Math.floor(current) - 1];
+    const current = Math.min(source.parts.length, Math.max(1, Math.trunc(Number(number)) || 1));
+    const part = source.parts[current - 1];
     return `<div class="wrap inner-page reader-page">${crumb([[book.title, pathFor(book, "chapters")], ["Sample reader"]])}
       <div class="reader-tools"><label class="select-control"><span class="sr-only">Choose excerpt</span><select id="chapter-choice" data-book="${book.id}">${source.parts.map((p, i) => `<option value="${i + 1}" ${i + 1 === current ? "selected" : ""}>Excerpt ${i + 1} of ${source.parts.length}</option>`).join("")}</select>${icon("down", "chevron")}</label>
       <div class="type-controls" role="group" aria-label="Reading text size"><button data-action="type" data-step="-1" aria-label="Decrease reading text size" ${state.typeSize === 0 ? "disabled" : ""}>A<span>−</span></button><button data-action="type" data-step="1" aria-label="Increase reading text size" ${state.typeSize === 2 ? "disabled" : ""}>A<span>+</span></button></div></div>
@@ -143,6 +143,16 @@ function startPrologue() {
       <div class="reading-text">${part.paragraphs.map(p => `<p>${esc(p)}</p>`).join("")}</div>
       <p class="source-credit">This public-domain passage stands in for a submitted chapter in the demo. <a class="text-link" href="${source.url}" target="_blank" rel="noreferrer">Read the Standard Ebooks edition</a></p>
       <nav class="reader-bottom" aria-label="Continue reading"><a href="${pathFor(book)}" class="text-link">Back to manuscript</a>${current < source.parts.length ? `<a class="button secondary" href="${readPath(book, current + 1)}">Next excerpt</a>` : `<a class="button secondary" href="${pathFor(book, "funding")}">See funding plan</a>`}</nav></article></div>`;
+  }
+
+  function exampleStatement() {
+    const pledge = examplePledges.find(p => p.id === "salt-orchard");
+    const book = findBook(pledge.id);
+    const royalties = 12000;
+    const pool = royalties * book.bookRate / 100;
+    const payment = pool * pledge.amount / book.goal;
+    return `<section class="shelf-section royalty-example"><div><p class="overline">Illustrative payment</p><h2>A royalty statement</h2><p>Suppose ${book.title} reaches its ${money(book.goal)} goal and the writer later receives ${money(royalties)} in book royalties. Here’s the payment on the ${money(pledge.amount)} book pledge above.</p></div>
+      ${ledger([["Writer’s book royalties", money(royalties)], [`${book.bookRate}% shared with book backers`, money(pool)], ["Your part of the round", `${money(pledge.amount)} of ${money(book.goal)}`], ["Your royalty payment", money(payment)]], "total-last")}</section>`;
   }
 
   function shelfPage(example) {
@@ -157,6 +167,7 @@ function startPrologue() {
       ${saved.length ? `<div class="saved-list">${saved.map(id => { const b = findBook(id); return `<article><img src="${art(b)}" width="150" height="100" alt=""><div><p class="genre">${b.genre}</p><h3><a href="${pathFor(b)}">${b.title}</a></h3><p>by ${b.author}</p></div>${example ? "" : saveButton(b, true)}</article>`; }).join("")}</div>` : '<p class="muted">Use a manuscript’s bookmark to save it here.</p>'}</section>
       <section class="shelf-section"><div class="section-heading"><h2>My pledges</h2><span>${money(sum)} pledged</span></div>
       ${pledges.length ? `<div class="table-scroll"><table><thead><tr><th scope="col">Manuscript</th><th scope="col">Backing terms</th><th scope="col" class="number">Pledge</th></tr></thead><tbody>${[...pledges].reverse().map(p => { const b = findBook(p.id); return `<tr><th scope="row"><a href="${pathFor(b, "funding")}">${b.title}</a></th><td>${rightsName(p.track)}</td><td class="number">${money(p.amount)}</td></tr>`; }).join("")}</tbody></table></div><p class="fine">Demo pledges only. Royalty payments depend on future earnings.</p>` : '<p class="muted">You haven’t tried a pledge yet.</p>'}</section>
+      ${example ? exampleStatement() : ""}
       ${pledges.length ? `<section class="shelf-section"><h2>From your writers</h2><div class="shelf-updates">${[...new Set(pledges.map(p => p.id))].map(id => { const b = findBook(id); return `<article><p class="genre">${b.title} <span>·</span> ${b.updates[0].date}</p><h3><a href="${pathFor(b, "updates")}">${b.updates[0].title}</a></h3></article>`; }).join("")}</div></section>` : ""}`}</div>`;
   }
 
@@ -182,7 +193,7 @@ function startPrologue() {
     if (route[0] === "main") route = previousRoute.length ? previousRoute : ["discover"];
     const [page, id, tab] = route;
     const book = findBook(id);
-    const sectionChange = page === "book" && previousRoute[0] === "book" && previousRoute[1] === id;
+    const sectionChange = page === previousRoute[0] && ((page === "book" && previousRoute[1] === id) || page === "industry" || page === "shelf");
     const atHome = page === "discover" || page === "manuscripts";
     if (dialog.open) dialog.close();
     closeMenu();
@@ -194,7 +205,7 @@ function startPrologue() {
     else if (page === "shelf") main.innerHTML = shelfPage(id === "example");
     else if (page === "how") main.innerHTML = desks.howPage();
     else if (page === "writers") main.innerHTML = desks.writerPage(id === "preview");
-    else if (page === "industry") main.innerHTML = desks.industryPage();
+    else if (page === "industry") main.innerHTML = desks.industryPage(id);
     else main.innerHTML = `<div class="wrap inner-page empty-state"><h1>Page not found</h1><p>Return to the reading table to pick up a manuscript.</p><a class="button primary" href="#discover">Go to Discover</a></div>`;
     document.title = `${routeName(route, book) || "Page not found"} | Prologue`;
     const active = atHome || ["book", "read"].includes(page) ? "discover" : page;

@@ -1,25 +1,3 @@
-@font-face {
-  font-family: "Instrument Serif";
-  src: url("./assets/fonts/instrument-serif.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Instrument Serif";
-  src: url("./assets/fonts/instrument-serif-italic.woff2") format("woff2");
-  font-weight: 400;
-  font-style: italic;
-  font-display: swap;
-}
-@font-face {
-  font-family: "DM Sans";
-  src: url("./assets/fonts/dm-sans.woff2") format("woff2");
-  font-weight: 100 1000;
-  font-style: normal;
-  font-display: swap;
-}
-
 :root {
   --paper: #faf8f2;
   --page: #fdfbf6;
@@ -243,6 +221,10 @@ tbody th { font-weight: 500; }
 .shelf-updates article { padding-block: 1rem; border-bottom: 1px solid var(--rule); }
 .shelf-updates h3 { margin-top: .25rem; }
 .shelf-updates .genre span { padding-inline: .25rem; }
+.royalty-example { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: clamp(1rem, 5vw, 5rem); padding: clamp(1.25rem, 3vw, 2.5rem); background: var(--faint); border-block: 1px solid var(--rule); }
+.royalty-example h2 { margin: .4rem 0 .55rem; }
+.royalty-example p:not(.overline), .rights-footnote { color: var(--muted); }
+.royalty-example .ledger { margin: 0; }
 .process-list article { padding-block: 1.2rem; border-top: 1px solid var(--rule); }
 .process-list h2 { font-size: 2.3rem; }
 .process-list p, .industry-notes p { margin-top: .5rem; color: var(--muted); }
@@ -288,6 +270,19 @@ legend { display: block; width: 100%; padding: .35rem 0 .65rem; border-bottom: 1
 .table-book small { display: block; font: .82rem/1.5 var(--sans); color: var(--muted); margin-top: .2rem; }
 .signals td:last-child, .signals th:last-child { padding-left: 1.6rem; }
 .industry-notes { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; margin-top: 2rem; }
+.trade-panel { padding-top: 2rem; }
+.assignment-list article { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-block: 1.15rem; border-top: 1px solid var(--rule); }
+.assignment-list article:last-child { border-bottom: 1px solid var(--rule); }
+.assignment-list article h3 { margin: .25rem 0; }
+.assignment-list article h3 a:hover { color: var(--wine); }
+.assignment-list article p:not(.genre) { color: var(--muted); }
+.assignment-list article > div:last-child { display: grid; gap: .2rem; flex: none; text-align: right; }
+.assignment-list strong { font: 1.9rem var(--display); }
+.screen-listing { display: grid; grid-template-columns: minmax(12rem, .75fr) 1.25fr; align-items: center; gap: clamp(1.5rem, 4vw, 3.5rem); max-width: 56rem; }
+.screen-listing img { width: 100%; height: auto; border-radius: 3px; }
+.screen-listing h3 { font-size: 2.5rem; margin-top: .25rem; }
+.screen-listing p:not([class]) { color: var(--muted); margin-top: .55rem; }
+.rights-footnote { margin-top: 1.4rem; font-size: .92rem; }
 
 /* A pledge is a local demonstration. */
 .pledge-dialog { background: var(--paper); color: var(--ink); padding: clamp(1.25rem, 3vw, 2rem); width: min(31.5rem, calc(100% - 2rem)); max-height: calc(100dvh - 2.5rem); border: 1px solid #b6aa96; border-radius: 5px; box-shadow: 0 18px 80px rgb(41 30 21 / 20%); }
@@ -344,19 +339,19 @@ legend { display: block; width: 100%; padding: .35rem 0 .65rem; border-bottom: 1
   .book-plate { aspect-ratio: 1; }
   .book-intro h1 { font-size: 3.1rem; }
   .detail-columns, .info-columns, .writer-layout { grid-template-columns: 1fr; gap: 2rem; }
-  .writer-layout { display: flex; flex-direction: column-reverse; align-items: stretch; }
   .campaign-proof { position: static; }
   .proof-rule { margin-bottom: 1rem; }
   .field-pair { grid-template-columns: 1fr 1fr; gap: 1rem; }
   .funding-box, .paper-panel { max-width: none; }
   .saved-list { grid-template-columns: 1fr; gap: .45rem; }
+  .royalty-example { grid-template-columns: 1fr; }
   .industry-notes { gap: 1.5rem; }
   .industry-page .section-heading { align-items: start; flex-direction: column; }
 }
 @media (max-width: 540px) {
   .hero { grid-template-columns: 1fr; gap: 1.1rem; padding-block: 2rem 1.1rem; }
   .hero h1 { font-size: clamp(3.55rem, 12.9vw, 4.5rem); line-height: 1; margin: .65rem 0 .6rem; }
-  .hero h1 em { display: inline; }
+  .hero h1 em { display: inline; white-space: nowrap; }
   .hero-intro { max-width: 26rem; }
   .hero-art { width: min(88%, 21rem); height: auto; max-height: 13rem; justify-self: center; }
   .section-heading { align-items: start; flex-wrap: wrap; gap: .8rem; margin-bottom: 1.15rem; }
@@ -379,6 +374,17 @@ legend { display: block; width: 100%; padding: .35rem 0 .65rem; border-bottom: 1
   .reader-tools { gap: .6rem; }
   .reading-text { font-size: 1.17rem; }
   .field-pair, .industry-notes { grid-template-columns: 1fr; gap: 0; }
+  .screen-listing { grid-template-columns: 1fr; gap: 1.1rem; }
+  .screen-listing img { aspect-ratio: 1.95; object-fit: cover; }
+  .signals { min-width: 0; }
+  .signals thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .signals tbody, .signals tr { display: block; }
+  .signals tbody tr { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; border-block-start: 1px solid var(--rule); padding-block: 1rem; }
+  .signals tbody tr:last-child { border-block-end: 1px solid var(--rule); }
+  .signals tbody th, .signals tbody td { padding: 0; border: 0; text-align: left; }
+  .signals tbody th, .signals tbody td:last-child { grid-column: 1 / -1; }
+  .signals tbody td::before { content: attr(data-label); display: block; color: var(--muted); font-size: .8rem; }
+  .signals tbody td:last-child { display: flex; align-items: baseline; gap: .65rem; }
   .industry-notes article + article { margin-top: 1.25rem; }
   .page-heading > p:last-child { font-size: 1.04rem; }
   .pledge-dialog h2 { font-size: 2.25rem; }

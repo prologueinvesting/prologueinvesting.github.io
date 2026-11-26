@@ -21,6 +21,7 @@ function prologueDesks({ state, esc, icon, money, count, ledger, feeRows, art, p
           ["What if the book never sells?", "The editing work can still go ahead. Publication and licensing are uncertain. If the project earns no covered income, readers receive no royalties and can lose their full pledge."],
           ["Where do editors and agents fit in?", "Writers use their budgets to hire editors. Agents and publishers can visit the publisher’s desk to compare early readership, review sample pages and see which rights a writer has included."]
         ].map(([q, answer]) => `<details><summary>${q}${icon("down", "chevron")}</summary><p>${answer}</p></details>`).join("")}
+        <details><summary>What could a royalty payment look like?${icon("down", "chevron")}</summary><p>The example shelf shows how a writer’s royalties would be split for one book, down to the payment on a $25 pledge. <a class="text-link" href="#shelf/example">See the sample statement</a></p></details>
       </section><div class="closing-links"><a class="button primary" href="#manuscripts">Browse manuscripts</a><a class="text-link" href="#industry">Visit the publisher’s desk</a></div></div>`;
   }
 
@@ -80,14 +81,25 @@ function prologueDesks({ state, esc, icon, money, count, ledger, feeRows, art, p
   function signalsTable() {
     const list = manuscripts.filter(book => !state.industryFilter || (state.industryFilter === "screen" && book.screenRate));
     return `<div class="table-scroll"><table class="signals"><caption class="sr-only">Example readership and rights by manuscript</caption><thead><tr><th scope="col">Manuscript</th><th scope="col" class="number">Chapter reads</th><th scope="col" class="number">Backers</th><th scope="col" class="number">Pledged</th><th scope="col">Backing terms</th></tr></thead>
-      <tbody>${list.map(book => `<tr><th scope="row"><a class="table-book" href="${pathFor(book)}"><img src="${art(book)}" width="76" height="58" alt=""><span>${book.title}<small>${book.genre}</small></span></a></th><td class="number">${count(book.reads)}</td><td class="number">${count(totals(book).backers)}</td><td class="number">${money(totals(book).raised)}</td><td><a class="text-link" href="${pathFor(book, "funding")}">${book.screenRate ? "Book and screen" : "Book only"}</a></td></tr>`).join("")}</tbody></table></div>`;
+      <tbody>${list.map(book => `<tr><th scope="row"><a class="table-book" href="${pathFor(book)}"><img src="${art(book)}" width="76" height="58" alt=""><span>${book.title}<small>${book.genre}</small></span></a></th><td class="number" data-label="Chapter reads">${count(book.reads)}</td><td class="number" data-label="Backers">${count(totals(book).backers)}</td><td class="number" data-label="Pledged">${money(totals(book).raised)}</td><td data-label="Backing terms"><a class="text-link" href="${pathFor(book, "funding")}">${book.screenRate ? "Book and screen" : "Book only"}</a></td></tr>`).join("")}</tbody></table></div>`;
   }
 
-  function industryPage() {
-    return `<div class="wrap inner-page industry-page"><div class="page-heading"><p class="overline ruled-label">For agents &amp; publishers</p><h1>The publisher’s desk</h1><p>Look through early readership, editing plans and the rights each writer has opened to backers.</p></div>
-      <div class="section-heading"><div><h2>Manuscript ledger</h2><p>Sample figures for the three campaigns on the reading table.</p></div><label class="select-control"><span class="sr-only">Filter manuscripts by rights</span>${icon("tune")}<select id="industry-filter"><option value="">All backing terms</option><option value="screen" ${state.industryFilter ? "selected" : ""}>Includes screen licensing</option></select>${icon("down", "chevron")}</label></div>
-      <div id="signals-table">${signalsTable()}</div><div class="industry-notes"><article><h3>Reading the figures</h3><p>Chapter reads count visits to the sample. The backer count is the number of individual readers who pledged. A reader can pledge more than once.</p></article>
-      <article><h3>Editorial &amp; screen rights</h3><p>Open a manuscript to see its editing budget and proposed terms. The writer keeps the copyright. Book royalties and screen licensing have separate terms.</p></article></div></div>`;
+  function tradeView(tab) {
+    if (tab === "editorial") return `<div class="section-heading"><div><h2>Editorial work</h2><p>The work each writer wants to commission and the money set aside for it.</p></div></div>
+      <div class="assignment-list">${manuscripts.map(book => `<article><div><p class="genre">${book.stage}</p><h3><a href="${pathFor(book, "funding")}">${book.title}</a></h3><p>${book.budget.map(([label, amount]) => `${label} (${money(amount)})`).join(" · ")}</p></div><div><strong>${money(book.budget.reduce((sum, [, amount]) => sum + amount, 0))}</strong><a class="text-link" href="${pathFor(book, "funding")}">Full budget</a></div></article>`).join("")}</div>`;
+    if (tab === "screen") return `<div class="section-heading"><div><h2>Screen rights</h2><p>Manuscripts that include film or TV licensing income in their backing terms.</p></div></div>
+      ${manuscripts.filter(book => book.screenRate).map(book => `<article class="screen-listing"><img src="${art(book)}" width="750" height="500" alt="${book.alt}"><div><p class="genre">${book.genre}</p><h3>${book.title}</h3><p class="author-line">by ${book.author}</p><p>${book.pitch}</p>${ledger([["Rights holder", book.author], ["Reader share of licensing income", `${book.screenRate}%`]])}<a class="text-link" href="${pathFor(book, "funding")}">Read the campaign terms</a></div></article>`).join("")}
+      <p class="rights-footnote">A screen option or adaptation would require a separate agreement with the writer.</p>`;
+    return `<div class="section-heading"><div><h2>Manuscript ledger</h2><p>Sample figures for the three campaigns on the reading table.</p></div><label class="select-control"><span class="sr-only">Filter manuscripts by rights</span>${icon("tune")}<select id="industry-filter"><option value="">All backing terms</option><option value="screen" ${state.industryFilter ? "selected" : ""}>Includes screen licensing</option></select>${icon("down", "chevron")}</label></div>
+      <div id="signals-table">${signalsTable()}</div><div class="industry-notes"><article><h3>Chapter reads</h3><p>Each time a reader opens a sample chapter it counts as one read. Readers can return to a chapter as often as they like.</p></article>
+      <article><h3>Reader backing</h3><p>The backer count is the number of individual readers who pledged. The total pledged includes every pledge, including repeat pledges by the same reader.</p></article></div>`;
+  }
+
+  function industryPage(tab = "ledger") {
+    const tabs = [["ledger", "Readership"], ["editorial", "Editorial work"], ["screen", "Screen rights"]];
+    if (!tabs.some(([id]) => id === tab)) tab = "ledger";
+    return `<div class="wrap inner-page industry-page"><div class="page-heading"><p class="overline ruled-label">For agents &amp; publishers</p><h1>The publisher’s desk</h1><p>The proposed trade subscription gives agents, editors and producers a place to review readership, editing budgets and rights.</p></div>
+      <nav class="detail-nav" aria-label="Publisher’s desk sections">${tabs.map(([id, label]) => `<a href="#industry${id === "ledger" ? "" : "/" + id}" ${tab === id ? 'aria-current="page"' : ""}>${label}</a>`).join("")}</nav><section class="trade-panel">${tradeView(tab)}</section></div>`;
   }
 
   function filterIndustry(value) {
